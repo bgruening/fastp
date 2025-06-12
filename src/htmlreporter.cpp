@@ -1,6 +1,7 @@
 #include "htmlreporter.h"
 #include <chrono>
 #include <memory.h>
+#include "knownadapters.h"
 
 extern string command;
 
@@ -132,10 +133,18 @@ void HtmlReporter::printSummary(ofstream& ofs, FilterResult* result, Stats* preS
         outputRow(ofs, "Insert size peak:", mInsertSizePeak);
     }
     if(mOptions->adapterCuttingEnabled()) {
-        if(!mOptions->adapter.detectedAdapter1.empty())
-            outputRow(ofs, "Detected read1 adapter:", mOptions->adapter.detectedAdapter1);
-        if(!mOptions->adapter.detectedAdapter2.empty())
-            outputRow(ofs, "Detected read2 adapter:", mOptions->adapter.detectedAdapter2);
+        map<string, string> knownAdapters = getKnownAdapter();
+        if(!mOptions->adapter.detectedAdapter1.empty()) {
+            string adapterinfo1 = mOptions->adapter.detectedAdapter1;
+            if(knownAdapters.count(adapterinfo1) > 0)
+                adapterinfo1 += " -" + knownAdapters[mOptions->adapter.detectedAdapter1];
+            outputRow(ofs, "Detected read1 adapter:", adapterinfo1);
+        } if(!mOptions->adapter.detectedAdapter2.empty()) {
+            string adapterinfo2 = mOptions->adapter.detectedAdapter2;
+            if(knownAdapters.count(adapterinfo2) > 0)
+                adapterinfo2 += " -" + knownAdapters[mOptions->adapter.detectedAdapter2];
+            outputRow(ofs, "Detected read2 adapter:", adapterinfo2);
+        }
     }
     ofs << "</table>\n";
     ofs << "</div>\n";
@@ -457,7 +466,7 @@ void HtmlReporter::printHeader(ofstream& ofs){
 void HtmlReporter::printCSS(ofstream& ofs){
     ofs << "<style type=\"text/css\">" << endl;
     ofs << "td {border:1px solid #dddddd;padding:5px;font-size:12px;}" << endl;
-    ofs << "table {border:1px solid #999999;padding:2x;border-collapse:collapse; width:800px}" << endl;
+    ofs << "table {border:1px solid #999999;padding:2x;border-collapse:collapse;width:100%}" << endl;
     ofs << ".col1 {width:240px; font-weight:bold;}" << endl;
     ofs << ".adapter_col {width:500px; font-size:10px;}" << endl;
     ofs << "img {padding:30px;}" << endl;
@@ -466,7 +475,7 @@ void HtmlReporter::printCSS(ofstream& ofs){
     ofs << "a:visited {color: #999999}" << endl;
     ofs << ".alignleft {text-align:left;}" << endl;
     ofs << ".alignright {text-align:right;}" << endl;
-    ofs << ".figure {width:800px;height:600px;}" << endl;
+    ofs << ".figure {width:680px;height:600px;}" << endl;
     ofs << ".header {color:#ffffff;padding:1px;height:20px;background:#000000;}" << endl;
     ofs << ".section_title {color:#ffffff;font-size:20px;padding:5px;text-align:left;background:#663355; margin-top:10px;}" << endl;
     ofs << ".section_table {width:100%;}" << endl;
