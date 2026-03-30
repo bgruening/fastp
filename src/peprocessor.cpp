@@ -513,10 +513,9 @@ bool PairEndProcessor::processPairEnd(ReadPack* leftPack, ReadPack* rightPack, T
         // merging mode
         bool mergeProcessed = false;
         if(mOptions->merge.enabled && r1 && r2) {
-            if(!ovComputed) {
-                ov = OverlapAnalysis::analyze(r1, r2, mOptions->overlapDiffLimit, mOptions->overlapRequire, mOptions->overlapDiffPercentLimit/100.0);
-                ovComputed = true;
-            }
+            // Always recompute overlap on post-trim reads for merge (fixes #675)
+            ov = OverlapAnalysis::analyze(r1, r2, mOptions->overlapDiffLimit, mOptions->overlapRequire, mOptions->overlapDiffPercentLimit/100.0);
+            ovComputed = true;
             if(ov.overlapped) {
                 merged = OverlapAnalysis::merge(r1, r2, ov);
                 int result = mFilter->passFilter(merged);
