@@ -62,7 +62,7 @@ private:
     size_t* mNextSeq;
     libdeflate_compressor** mCompressors;
     char** mCompBufs;       // per-worker pre-allocated compress output buffers
-    size_t mCompBufSize;
+    size_t* mCompBufSizes;  // per-worker buffer sizes
 };
 
 #endif

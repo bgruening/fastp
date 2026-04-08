@@ -6,6 +6,7 @@
 #include <cerrno>
 #include <cstring>
 #include <thread>
+#include <chrono>
 
 WriterThread::WriterThread(Options* opt, string filename, bool isSTDOUT){
     mOptions = opt;
@@ -19,7 +20,7 @@ WriterThread::WriterThread(Options* opt, string filename, bool isSTDOUT){
     mNextSeq = NULL;
     mCompressors = NULL;
     mCompBufs = NULL;
-    mCompBufSize = 0;
+    mCompBufSizes = NULL;
     mBufferLists = NULL;
 
     if (mPwriteMode) {
@@ -33,11 +34,13 @@ WriterThread::WriterThread(Options* opt, string filename, bool isSTDOUT){
         mCompressors = new libdeflate_compressor*[mOptions->thread];
         for (int t = 0; t < mOptions->thread; t++)
             mCompressors[t] = libdeflate_alloc_compressor(mOptions->compression);
-        // Pre-allocate per-worker compress buffers (avoids malloc/free per pack)
-        mCompBufSize = PACK_SIZE * 500;  // ~500 bytes/read worst case
+        size_t initBufSize = PACK_SIZE * 500;
         mCompBufs = new char*[mOptions->thread];
-        for (int t = 0; t < mOptions->thread; t++)
-            mCompBufs[t] = new char[mCompBufSize];
+        mCompBufSizes = new size_t[mOptions->thread];
+        for (int t = 0; t < mOptions->thread; t++) {
+            mCompBufs[t] = new char[initBufSize];
+            mCompBufSizes[t] = initBufSize;
+        }
         mWorkingBufferList = 0;
         mBufferLength = 0;
     } else {
@@ -114,11 +117,11 @@ void WriterThread::input(int tid, string* data) {
 
 void WriterThread::inputPwrite(int tid, string* data) {
     size_t bound = libdeflate_gzip_compress_bound(mCompressors[tid], data->size());
-    // Grow pre-allocated buffer if needed
-    if (bound > mCompBufSize) {
+    // Grow per-worker buffer if needed
+    if (bound > mCompBufSizes[tid]) {
         delete[] mCompBufs[tid];
         mCompBufs[tid] = new char[bound];
-        // Note: mCompBufSize is shared but only grows, safe for other threads
+        mCompBufSizes[tid] = bound;
     }
     size_t outsize = libdeflate_gzip_compress(mCompressors[tid], data->data(), data->size(),
                                                mCompBufs[tid], bound);
@@ -130,16 +133,13 @@ void WriterThread::inputPwrite(int tid, string* data) {
 
     size_t seq = mNextSeq[tid];
 
-    // Wait for previous batch's cumulative offset
+    // Wait for previous batch's cumulative offset.
+    // Sleep yields CPU to prevent livelock under contention.
     size_t offset = 0;
     if (seq > 0) {
         size_t prevSlot = (seq - 1) & (OFFSET_RING_SIZE - 1);
         while (mOffsetRing[prevSlot].published_seq.load(std::memory_order_acquire) != seq - 1) {
-#if defined(__aarch64__)
-            __asm__ volatile("yield");
-#elif defined(__x86_64__) || defined(__i386__)
-            __asm__ volatile("pause");
-#endif
+            std::this_thread::sleep_for(std::chrono::microseconds(1));
         }
         offset = mOffsetRing[prevSlot].cumulative_offset.load(std::memory_order_relaxed);
     }
@@ -182,6 +182,7 @@ void WriterThread::cleanup() {
                 delete[] mCompBufs[t];
             delete[] mCompBufs; mCompBufs = NULL;
         }
+        delete[] mCompBufSizes; mCompBufSizes = NULL;
         return;
     }
     deleteWriter();

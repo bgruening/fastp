@@ -68,3 +68,9 @@ jobs:
         run: |
           ./fastp --version
           ./fastp -i testdata/R1.fq -o /dev/null
+
+      - name: upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: fastp-${{ runner.os }}-${{ runner.arch }}
+          path: fastp

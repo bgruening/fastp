@@ -99,6 +99,8 @@ public:
         if(head==NULL) {
             head = item;
             tail = item;
+            // Signal the first item is consumable (no predecessor to set this)
+            head->nextItemReady.store(true, std::memory_order_release);
         } else {
             tail->nextItem = item;
             tail->nextItemReady = true;
