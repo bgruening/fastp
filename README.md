@@ -13,7 +13,7 @@ This tool is designed for processing short reads (i.e. Illumina NovaSeq, MGI), i
 
 fastp supports batch processing of multiple FASTQ files in a folder, see - [batch processing](#batch-processing)  
 
-If you use fastp in your work, you can cite fastp as:  *Shifu Chen. fastp 1.0: An ultra-fast all-round tool for FASTQ data quality control and preprocessing. iMeta 4.5 (2025): e70078*
+If you use fastp in your work, you can cite fastp as:  [Shifu Chen. fastp 1.0: An ultra-fast all-round tool for FASTQ data quality control and preprocessing. iMeta 4.5 (2025): e70078 https://doi.org/10.1002/imt2.70078](https://doi.org/10.1002/imt2.70078)
 
 
 - [features](#features)
