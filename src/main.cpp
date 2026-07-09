@@ -434,7 +434,9 @@ int main(int argc, char* argv[]){
 
     time_t t1 = time(NULL);
 
-    bool supportEvaluation = !opt.inputFromSTDIN && opt.in1!="/dev/stdin";
+    bool supportEvaluation = !opt.inputFromSTDIN && opt.in1!="/dev/stdin"
+                             && is_regular_file(opt.in1)
+                             && (opt.in2.empty() || is_regular_file(opt.in2));
 
     Evaluator eva(&opt);
     if(supportEvaluation) {
