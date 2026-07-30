@@ -60,6 +60,7 @@ If you use fastp in your work, you can cite fastp as:  [Shifu Chen. fastp 1.0: A
 - [batch processing](#batch-processing)
 - [all options](#all-options)
 - [citations](#citations)
+- [sponsorship](#sponsorship)
 
 # features
 0. comprehensive quality profiling for both before and after filtering data (quality curves, base contents, KMER, Q20/Q30, GC Ratio, duplication, adapter contents...)
@@ -553,3 +554,5 @@ options:
 ### Shifu Chen. 2023. Ultrafast one-pass FASTQ data preprocessing, quality control, and deduplication using fastp. iMeta 2: e107. https://doi.org/10.1002/imt2.107
 ### Shifu Chen, Yanqing Zhou, Yaru Chen, Jia Gu; fastp: an ultra-fast all-in-one FASTQ preprocessor, Bioinformatics, Volume 34, Issue 17, 1 September 2018, Pages i884–i890, https://doi.org/10.1093/bioinformatics/bty560
 
+# sponsorship
+This project is maintained and sponsored by [HaploX Biotechnology](https://haplox.com), a company with leading gene sequencing and bioinformatics technologies, providing high-quality sequencing and data analysis services for clinical applications and scientific research.
